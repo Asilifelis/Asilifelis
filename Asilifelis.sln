@@ -5,6 +5,8 @@ VisualStudioVersion = 17.12.35309.182
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asilifelis", "Asilifelis\Asilifelis.csproj", "{F51447F3-031D-4309-AEB2-C936C1B925CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Asilifelis.Tests", "Asilifelis.Tests\Asilifelis.Tests.csproj", "{676B45D1-EBD3-4FBC-B0E0-B6D0484442C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{F51447F3-031D-4309-AEB2-C936C1B925CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F51447F3-031D-4309-AEB2-C936C1B925CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F51447F3-031D-4309-AEB2-C936C1B925CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{676B45D1-EBD3-4FBC-B0E0-B6D0484442C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{676B45D1-EBD3-4FBC-B0E0-B6D0484442C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{676B45D1-EBD3-4FBC-B0E0-B6D0484442C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{676B45D1-EBD3-4FBC-B0E0-B6D0484442C5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
