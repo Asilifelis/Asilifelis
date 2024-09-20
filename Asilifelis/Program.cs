@@ -1,5 +1,10 @@
+using System.Net;
 using System.Text.Json.Serialization;
 using Asilifelis.Data;
+using Asilifelis.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -7,9 +12,25 @@ builder.Services.ConfigureHttpJsonOptions(options => {
 	options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 
-builder.Services.AddDbContextFactory<ApplicationContext>();
+builder.Services.AddDbContextFactory<ApplicationContext>(options => {
+	options.UseSqlite("DataSource=asilifelis.db");
+});
+builder.Services.AddScoped<ApplicationRepository>();
 
 var app = builder.Build();
+
+var api = app.MapGroup("/api");
+api.MapGet("/actor", async Task<Results<Ok<Actor>, ProblemHttpResult>> (
+		[FromServices] ApplicationRepository repository, 
+		CancellationToken cancellation) => {
+	try {
+		return TypedResults.Ok(await repository.GetInstanceActorAsync(cancellation));
+	} catch (InvalidOperationException) {
+		return TypedResults.Problem(
+			"Failed to load instance actor due to an internal server error.", 
+			statusCode:(int?)HttpStatusCode.InternalServerError);
+	}
+});
 
 var sampleTodos = new Todo[] {
 	new(1, "Walk the dog"),
@@ -25,6 +46,14 @@ todosApi.MapGet("/{id}", (int id) =>
 	sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
 		? Results.Ok(todo)
 		: Results.NotFound());
+
+await using (var scope = app.Services.CreateAsyncScope()) {
+	await using var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
+	context.Database.EnsureCreated();
+
+	var repository = scope.ServiceProvider.GetRequiredService<ApplicationRepository>();
+	await repository.InitializeAsync();
+}
 
 app.Run();
 
