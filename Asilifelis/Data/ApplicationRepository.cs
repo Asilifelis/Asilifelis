@@ -54,6 +54,18 @@ public class ApplicationRepository(ApplicationContext context) {
 		return actor;
 	}
 
+	public async ValueTask<ICollection<Note>> GetNotesAsync(Actor actor, int amount = 100, int offset = 0, CancellationToken cancellationToken = default) {
+		return await Context.Notes
+			.Where(n => n.Author == actor)
+			.Skip(offset).Take(amount).OrderByDescending(n => n.Id)
+			.ToListAsync(cancellationToken);
+	}
+
+	public async ValueTask<Note?> GetNoteByIdAsync(Guid id, CancellationToken cancellationToken = default) {
+		// TODO validate access permissions
+		return await Context.Notes.Include(n => n.Author).FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
+	}
+
 	public async ValueTask<UserIdentity> GetIdentityAsync(string username, CancellationToken cancellationToken = default) {
 		var actor = await Context.Actors
 			.Include(a => a.Identity)
@@ -114,5 +126,11 @@ public class ApplicationRepository(ApplicationContext context) {
 		} catch (Exception ex) {
 			throw new InvalidOperationException("Failed to create Actor", ex);
 		}
+	}
+
+	public async ValueTask PublishPostAsync(Note note, CancellationToken cancellationToken = default) {
+		await Context.Notes.AddAsync(note, cancellationToken);
+		Context.Entry(note.Author).State = EntityState.Unchanged;
+		await Context.SaveChangesAsync(cancellationToken);
 	}
 }
