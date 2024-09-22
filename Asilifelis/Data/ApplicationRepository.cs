@@ -1,4 +1,5 @@
 ﻿using Asilifelis.Models;
+using Asilifelis.Security;
 using Microsoft.EntityFrameworkCore;
 
 namespace Asilifelis.Data;
@@ -13,7 +14,8 @@ public class ApplicationRepository(ApplicationContext context) {
 			try {
 				Actor instanceActor = new() {
 					Username = ReservedInstanceActorName,
-					DisplayName = "Instance Actor"
+					DisplayName = "Instance Actor",
+					Identity = null
 				};
 				await Context.AddAsync(instanceActor, cancellationToken);
 				await Context.SaveChangesAsync(cancellationToken);
@@ -25,7 +27,7 @@ public class ApplicationRepository(ApplicationContext context) {
 
 	public async ValueTask<Actor> GetInstanceActorAsync(CancellationToken cancellationToken = default) {
 		try {
-			return await GetActorAsync(ReservedInstanceActorName);
+			return await GetActorAsync(ReservedInstanceActorName, cancellationToken);
 		} catch (ActorNotFoundException ex) {
 			// TODO try (re-)creating the actor?
 			throw new InvalidOperationException(
@@ -33,6 +35,15 @@ public class ApplicationRepository(ApplicationContext context) {
 				"This might be due to a connection error with the data store or because it is corrupted.",
 				ex);
 		}
+	}
+
+	public async ValueTask<bool> IsUsernameTaken(string username, CancellationToken cancellationToken = default) {
+		return await Context.Actors.AnyAsync(a => a.Username == username, cancellationToken);
+	}
+
+	public async ValueTask UpdateActorAsync(Actor actor, CancellationToken cancellationToken = default) {
+		Context.Actors.Update(actor);
+		await Context.SaveChangesAsync(cancellationToken);
 	}
 
 	public async ValueTask<Actor> GetActorAsync(string username, CancellationToken cancellationToken = default) {
@@ -43,7 +54,41 @@ public class ApplicationRepository(ApplicationContext context) {
 		return actor;
 	}
 
-	public async ValueTask<Actor> CreateActorAsync(string username, string? displayName = null, CancellationToken cancellationToken = default) {
+	public async ValueTask<UserIdentity> GetIdentityAsync(string username, CancellationToken cancellationToken = default) {
+		var actor = await Context.Actors
+			.Include(a => a.Identity)
+			.ThenInclude(i => i!.Credentials)
+			.ThenInclude(c => c.Descriptor)
+			.FirstOrDefaultAsync(a => a.Identity != null && a.Username == username, cancellationToken);
+		
+		if (actor is null) throw new ActorNotFoundException();
+		return actor.Identity!;
+	}
+
+	public async ValueTask<Actor> GetActorByCredentialIdAsync(byte[] credentialId, CancellationToken cancellationToken = default) {
+		var actor = await Context.Actors
+			.Include(a => a.Identity)
+			.ThenInclude(i => i!.Credentials)
+			.ThenInclude(c => c.Descriptor)
+			.FirstOrDefaultAsync(a => 
+				a.Identity != null && 
+				a.Identity.Credentials.Any(c => c.Descriptor.Id == credentialId), 
+				cancellationToken: cancellationToken);
+
+		if (actor is null) throw new ActorNotFoundException();
+
+		return actor;
+	}
+
+	public async ValueTask<Credential?> GetCredentialByUserHandleAsync(byte[] userHandle, CancellationToken cancellationToken = default) {
+		var credential = await Context.Set<UserIdentity>()
+			.SelectMany(u => u.Credentials)
+			.Include(c => c.Descriptor)
+			.FirstOrDefaultAsync(c => c.UserHandle.SequenceEqual(userHandle), cancellationToken);
+		return credential;
+	}
+
+	public async ValueTask<Actor> CreateActorAsync(string username, string? displayName = null, UserIdentity? identity = null, CancellationToken cancellationToken = default) {
 		if (username.Length < 1) 
 			throw new InvalidOperationException("username too short, must be at least 1 character.");
 		if (username.Length > 64) 
@@ -58,7 +103,8 @@ public class ApplicationRepository(ApplicationContext context) {
 		
 		var actor = new Actor {
 			Username = username,
-			DisplayName = displayName ?? username
+			DisplayName = displayName ?? username,
+			Identity = identity
 		};
 
 		try {
