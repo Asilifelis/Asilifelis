@@ -31,6 +31,8 @@ builder.Services.AddDbContextFactory<ApplicationContext>(options => {
 	options.UseSqlite("DataSource=asilifelis.db");
 });
 builder.Services.AddScoped<ApplicationRepository>();
+builder.Services.Configure<InstanceOptions>(builder.Configuration.GetSection("Instance"));
+builder.Services.AddSingleton<UriHelper>();
 
 #region Security
 

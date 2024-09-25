@@ -1,15 +1,14 @@
 ﻿using System.Security.Claims;
 using System.Text;
-using System.Threading;
 using Asilifelis.Controllers.Server;
 using Asilifelis.Data;
 using Asilifelis.Models;
 using Asilifelis.Security;
+using Asilifelis.Utilities;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,8 +16,9 @@ namespace Asilifelis.Controllers;
 
 [Route("/api/[controller]")]
 [ApiController]
-public class AuthenticateController(ApplicationRepository repository, IFido2 fido2) : ControllerBase {
+public class AuthenticateController(ApplicationRepository repository, IFido2 fido2, UriHelper uriHelper) : ControllerBase {
 	private ApplicationRepository Repository { get; } = repository;
+	private UriHelper UriHelper { get; } = uriHelper;
 	private IFido2 Fido2 { get; } = fido2;
 
 	[HttpPost("attestation/options")]
@@ -182,7 +182,7 @@ public class AuthenticateController(ApplicationRepository repository, IFido2 fid
 
 		try {
 			var actor = await Repository.GetActorAsync(username);
-			return TypedResults.Ok(new ActorView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), actor));
+			return TypedResults.Ok(new ActorView(UriHelper.GetBaseUri(Request), actor));
 		} catch (ActorNotFoundException) {
 			return TypedResults.BadRequest("Invalid Identity format, try signing in again.");
 		}

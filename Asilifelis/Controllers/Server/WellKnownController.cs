@@ -1,13 +1,15 @@
 ﻿using Asilifelis.Data;
 using Asilifelis.Models;
+using Asilifelis.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Asilifelis.Controllers.Server;
 
 [ApiController]
 [Route("/.well-known")]
-public class WellKnownController(ApplicationRepository repository) : ControllerBase {
+public class WellKnownController(ApplicationRepository repository, UriHelper uriHelper) : ControllerBase {
 	private ApplicationRepository Repository { get; } = repository;
+	private UriHelper UriHelper { get; } = uriHelper;
 
 	internal record Link(string Rel, string Type, string Href);
 
@@ -30,7 +32,7 @@ public class WellKnownController(ApplicationRepository repository) : ControllerB
 				string username = parts[0]["acct:".Length..];
 
 				try {
-					return Ok(new WebfingerActorView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), await Repository.GetActorAsync(username)));
+					return Ok(new WebfingerActorView(UriHelper.GetBaseUri(Request), await Repository.GetActorAsync(username)));
 				} catch (ActorNotFoundException) {
 					return NotFound();
 				}

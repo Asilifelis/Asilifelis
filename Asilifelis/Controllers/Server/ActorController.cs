@@ -2,6 +2,7 @@
 using System.Threading;
 using Asilifelis.Data;
 using Asilifelis.Models;
+using Asilifelis.Utilities;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -52,15 +53,16 @@ public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, strin
 [ApiController]
 [Route("/api/[controller]")]
 [Produces("application/ld+json", "application/activity+json")]
-public class ActorController(ApplicationRepository repository) : ControllerBase {
+public class ActorController(ApplicationRepository repository, UriHelper uriHelper) : ControllerBase {
 	private ApplicationRepository Repository { get; } = repository;
+	private UriHelper UriHelper { get; } = uriHelper;
 
 	[HttpGet("{id}")]
 	[Produces("application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"", "application/activity+json")]
 	public async ValueTask<IActionResult> GetProfileAsync(string id, CancellationToken cancellationToken) {
 		try {
 			var actor = await Repository.GetActorByIdentifierAsync(id, cancellationToken);
-			return Ok(new ActorView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), actor));
+			return Ok(new ActorView(UriHelper.GetBaseUri(Request), actor));
 		} catch (ActorNotFoundException) {
 			return NotFound("user not found.");
 		} catch (IdentifierNotRecognizedException) {
@@ -75,7 +77,7 @@ public class ActorController(ApplicationRepository repository) : ControllerBase 
 			var actor = await Repository.GetActorByIdentifierAsync(id, cancellationToken);
 			(var notes, int total) = await Repository.GetNotesAsync(actor, cancellationToken: cancellationToken);
 			return Ok(new OrderedCollection<NoteView>("", total, notes
-				.Select(n => new NoteView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), actor, n))));
+				.Select(n => new NoteView(UriHelper.GetBaseUri(Request), actor, n))));
 		} catch (ActorNotFoundException) {
 			return NotFound("user not found.");
 		} catch (IdentifierNotRecognizedException) {

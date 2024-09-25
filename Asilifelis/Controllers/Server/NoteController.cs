@@ -1,12 +1,14 @@
 ﻿using Asilifelis.Data;
+using Asilifelis.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Asilifelis.Controllers.Server;
 
 [ApiController]
 [Route("/api/[controller]")]
-public class NoteController(ApplicationRepository repository) : ControllerBase {
+public class NoteController(ApplicationRepository repository, UriHelper uriHelper) : ControllerBase {
 	private ApplicationRepository Repository { get; } = repository;
+	private UriHelper UriHelper { get; } = uriHelper;
 
 	[HttpGet("{id:guid}")]
 	[Produces("application/ld+json", "application/activity+json")]
@@ -14,6 +16,6 @@ public class NoteController(ApplicationRepository repository) : ControllerBase {
 		var note = await Repository.GetNoteByIdAsync(id);
 		if (note is null) return NotFound();
 
-		return Ok(new NoteView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), note.Author, note));
+		return Ok(new NoteView(UriHelper.GetBaseUri(Request), note.Author, note));
 	}
 }
