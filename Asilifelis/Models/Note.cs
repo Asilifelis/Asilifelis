@@ -4,4 +4,6 @@ public class Note {
 	public Guid Id { get; init; }
 	public required Actor Author { get; init; }
 	public required string Content { get; init; }
+
+	public DateTimeOffset PublishDate { get; init; } = DateTimeOffset.Now;
 }

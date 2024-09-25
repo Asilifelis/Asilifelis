@@ -31,7 +31,9 @@ public record ActorView(Uri Id, ActorType Type, string Name, string PreferredUse
 			new Uri(baseUri, $"api/actor/{actor.Id}/outbox")) {}
 }
 
-public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, string Content) {
+public record SourceView(string Content, string MediaType);
+
+public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive) {
 	[JsonPropertyName("type"), UsedImplicitly]
 	public string Type => "Note";
 
@@ -41,7 +43,10 @@ public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, string Content) {
 		[
 			new Uri("https://www.w3.org/ns/activitystreams#Public")
 		],
-		note.Content) {}
+		null,
+		note.Content, new SourceView(note.Content, "text/plain"),
+		note.PublishDate, 
+		false) {}
 }
 
 [ApiController]
