@@ -34,7 +34,7 @@ public record ActorView(Uri Id, ActorType Type, string Name, string PreferredUse
 
 public record SourceView(string Content, string MediaType);
 
-public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive) {
+public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive) : ActivityStreamsObject {
 	[JsonPropertyName("type"), UsedImplicitly]
 	public string Type => "Note";
 
