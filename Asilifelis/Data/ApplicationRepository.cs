@@ -45,7 +45,15 @@ public class ApplicationRepository(ApplicationContext context) {
 		Context.Actors.Update(actor);
 		await Context.SaveChangesAsync(cancellationToken);
 	}
+	
 
+	public async ValueTask<Actor> GetActorAsync(Guid id, CancellationToken cancellationToken = default) {
+		var actor = await Context.Actors.FirstOrDefaultAsync(
+			a => a.Id == id, cancellationToken);
+		
+		if (actor is null) throw new ActorNotFoundException();
+		return actor;
+	}
 	public async ValueTask<Actor> GetActorAsync(string username, CancellationToken cancellationToken = default) {
 		var actor = await Context.Actors.FirstOrDefaultAsync(
 			a => a.Username == username, cancellationToken);
@@ -53,12 +61,22 @@ public class ApplicationRepository(ApplicationContext context) {
 		if (actor is null) throw new ActorNotFoundException();
 		return actor;
 	}
+	public async ValueTask<Actor> GetActorByIdentifierAsync(string identifier, CancellationToken cancellationToken = default) {
+		if (identifier.StartsWith('@')) {
+			return await GetActorAsync(identifier[1..], cancellationToken);
+		} 
+		if (Guid.TryParse(identifier, out var guid)) {
+			return await GetActorAsync(guid, cancellationToken);
+		}
 
-	public async ValueTask<ICollection<Note>> GetNotesAsync(Actor actor, int amount = 100, int offset = 0, CancellationToken cancellationToken = default) {
-		return await Context.Notes
-			.Where(n => n.Author == actor)
-			.Skip(offset).Take(amount).OrderByDescending(n => n.Id)
-			.ToListAsync(cancellationToken);
+		throw new IdentifierNotRecognizedException($"Identifier {identifier} is not recognized as an actor UUIDv7 ID or username.");
+	}
+
+	public async ValueTask<(ICollection<Note> Notes, int TotalNotes)> GetNotesAsync(Actor actor, int amount = 100, int offset = 0, CancellationToken cancellationToken = default) {
+		var query = Context.Notes
+			.Where(n => n.Author == actor);
+		return (await query.Skip(offset).Take(amount).OrderByDescending(n => n.Id).ToListAsync(cancellationToken), 
+			await query.CountAsync(cancellationToken));
 	}
 
 	public async ValueTask<Note?> GetNoteByIdAsync(Guid id, CancellationToken cancellationToken = default) {

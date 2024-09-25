@@ -1,20 +1,29 @@
 using System.Net;
 using System.Security.Claims;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asilifelis.Data;
 using Asilifelis.Models;
-using Asilifelis.Security;
+using Asilifelis.Utilities;
 using Fido2NetLib;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
+using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.ConfigureHttpJsonOptions(options => {
-	options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+builder.Services.AddControllers(options => {
+	options.RespectBrowserAcceptHeader = true;
+	var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web) {
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+	};
+	jsonOptions.Converters.Add(new JsonStringEnumConverter());
+
+	options.OutputFormatters.Insert(0, new JsonLdOutputFormatter(jsonOptions));
 });
 
 builder.Services.AddDbContextFactory<ApplicationContext>(options => {
@@ -26,10 +35,11 @@ builder.Services.AddScoped<ApplicationRepository>();
 
 builder.Services.AddCors(options => {
 	options.AddDefaultPolicy(policy => {
-		policy.WithOrigins(builder.Configuration.GetSection("fido2:origins").Get<HashSet<string>>()?.ToArray() ?? throw new ApplicationException("Missing fido2:origins configuration."));
-		policy.AllowAnyMethod();
+		policy.WithOrigins(builder.Configuration.GetSection("fido2:origins").Get<HashSet<string>>()?.ToArray() 
+							?? throw new ApplicationException("Missing fido2:origins configuration."));
+		policy.WithMethods("GET", "POST", "PUT", "DELETE");
 		policy.AllowCredentials();
-		policy.WithHeaders("Content-Type", "");
+		policy.WithHeaders("Content-Type", "Accept");
 	});
 });
 
@@ -92,21 +102,6 @@ api.MapGet("/actor", async Task<Results<Ok<Actor>, ForbidHttpResult, ProblemHttp
 	}
 });
 
-var sampleTodos = new Todo[] {
-	new(1, "Walk the dog"),
-	new(2, "Do the dishes", DateOnly.FromDateTime(DateTime.Now)),
-	new(3, "Do the laundry", DateOnly.FromDateTime(DateTime.Now.AddDays(1))),
-	new(4, "Clean the bathroom"),
-	new(5, "Clean the car", DateOnly.FromDateTime(DateTime.Now.AddDays(2)))
-};
-
-var todosApi = app.MapGroup("/todos");
-todosApi.MapGet("/", () => sampleTodos);
-todosApi.MapGet("/{id}", (int id) =>
-	sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
-		? Results.Ok(todo)
-		: Results.NotFound());
-
 await using (var scope = app.Services.CreateAsyncScope()) {
 	await using var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
 	context.Database.EnsureCreated();
@@ -117,10 +112,3 @@ await using (var scope = app.Services.CreateAsyncScope()) {
 app.MapControllers();
 
 app.Run();
-
-public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
-
-[JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext {
-
-}
