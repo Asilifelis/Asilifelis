@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="Fido2.AspNet" Version="4.0.0-beta.13" />
+    <PackageReference Include="json-ld.net" Version="1.0.7" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0-rc.1.24451.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.0-rc.1.24451.1">
       <PrivateAssets>all</PrivateAssets>
