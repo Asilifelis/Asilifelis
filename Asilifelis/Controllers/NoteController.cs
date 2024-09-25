@@ -9,7 +9,7 @@ public record ActorView(string DisplayName, string Username) {
 	public ActorView(Actor actor) : this(actor.DisplayName, actor.Username) {}
 }
 
-public record NoteView(string Content, ActorView author) {
+public record NoteView(string Content, ActorView Author) {
 	public NoteView(Note note) : this(note.Content, new ActorView(note.Author)) {}
 }
 

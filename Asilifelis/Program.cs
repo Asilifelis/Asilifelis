@@ -26,7 +26,7 @@ builder.Services.AddScoped<ApplicationRepository>();
 
 builder.Services.AddCors(options => {
 	options.AddDefaultPolicy(policy => {
-		policy.WithOrigins("http://localhost:8000");
+		policy.WithOrigins(builder.Configuration.GetSection("fido2:origins").Get<HashSet<string>>()?.ToArray() ?? throw new ApplicationException("Missing fido2:origins configuration."));
 		policy.AllowAnyMethod();
 		policy.AllowCredentials();
 		policy.WithHeaders("Content-Type", "");

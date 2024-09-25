@@ -144,11 +144,16 @@ public class AuthenticateController(ApplicationRepository repository, IFido2 fid
 			var c = await Repository.GetCredentialByUserHandleAsync(@params.UserHandle, token);
 			return c is not null && c.Descriptor.Id.SequenceEqual(@params.CredentialId);
 		};
-		var result = await Fido2.MakeAssertionAsync(clientResponse, options, 
-			credential.PublicKey, identity.Credentials.Select(c => c.PublicKey).ToList(), 
-			counter, callback, cancellationToken: cancellationToken);
+		VerifyAssertionResult result;
+		try {
+			result = await Fido2.MakeAssertionAsync(clientResponse, options,
+				credential.PublicKey, identity.Credentials.Select(c => c.PublicKey).ToList(),
+				counter, callback, cancellationToken: cancellationToken);
+		} catch (Exception ex) {
+			return TypedResults.BadRequest(ex.Message);
+		}
 
-		// TODO increase counter
+		// TODO increase counter? (some ppl say it's useless)
 		if (result.Status is not "ok") return TypedResults.BadRequest(result.ErrorMessage);
 
 		var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity([
