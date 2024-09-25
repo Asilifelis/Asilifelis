@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using System.Text;
 using System.Threading;
+using Asilifelis.Controllers.Server;
 using Asilifelis.Data;
 using Asilifelis.Models;
 using Asilifelis.Security;
@@ -166,19 +167,22 @@ public class AuthenticateController(ApplicationRepository repository, IFido2 fid
 		},  CookieAuthenticationDefaults.AuthenticationScheme);
 	}
 
+	[HttpPost("logout")]
+	public Results<SignOutHttpResult, ForbidHttpResult> PostLogoutAsync() {
+		if (User.Identity?.IsAuthenticated is not true) return TypedResults.Forbid();
+
+		return TypedResults.SignOut();
+	}
+
 	[HttpGet("me")]
-	public async ValueTask<Results<Ok<Actor>, BadRequest<string>, UnauthorizedHttpResult>> GetMeAsync() {
+	public async ValueTask<Results<Ok<ActorView>, BadRequest<string>, UnauthorizedHttpResult>> GetMeAsync() {
 		if (User.Identity?.IsAuthenticated is not true) return TypedResults.Unauthorized();
 		string? username = User.FindFirstValue(ClaimTypes.NameIdentifier);
 		if (username is null) return TypedResults.BadRequest("Invalid Identity format, try signing in again.");
 
 		try {
 			var actor = await Repository.GetActorAsync(username);
-			return TypedResults.Ok(new Actor {
-				DisplayName = actor.DisplayName,
-				Username = actor.Username,
-				Identity = null
-			});
+			return TypedResults.Ok(new ActorView(new Uri($"{Request.Scheme}://{Request.Host}{Request.PathBase}"), actor));
 		} catch (ActorNotFoundException) {
 			return TypedResults.BadRequest("Invalid Identity format, try signing in again.");
 		}

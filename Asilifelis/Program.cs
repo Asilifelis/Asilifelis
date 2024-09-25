@@ -1,4 +1,5 @@
 using System.Net;
+using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -100,6 +101,12 @@ api.MapGet("/actor", async Task<Results<Ok<Actor>, ForbidHttpResult, ProblemHttp
 			"Failed to load instance actor due to an internal server error.", 
 			statusCode:(int?)HttpStatusCode.InternalServerError);
 	}
+});
+api.MapGet("/version", Results<Ok<string>, NotFound> () => {
+	string? humanReadableVersion = Assembly.GetEntryAssembly()?
+		.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+		.InformationalVersion.Split("+", 2)[0];
+	return humanReadableVersion is null ? TypedResults.NotFound() : TypedResults.Ok(humanReadableVersion);
 });
 
 await using (var scope = app.Services.CreateAsyncScope()) {
