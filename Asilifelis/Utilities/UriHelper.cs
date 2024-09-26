@@ -12,4 +12,8 @@ public class UriHelper(IOptionsMonitor<InstanceOptions> options) {
 
 		return new Uri($"{request.Scheme}://{request.Host}{request.PathBase}");
 	}
+
+	public Uri GetUriAbsolute(HttpRequest request, string relative) {
+		return new Uri(GetBaseUri(request), relative);
+	}
 }

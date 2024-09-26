@@ -25,6 +25,8 @@ builder.Services.AddControllers(options => {
 	jsonOptions.Converters.Add(new JsonStringEnumConverter());
 
 	options.OutputFormatters.Insert(0, new JsonLdOutputFormatter(jsonOptions));
+}).AddJsonOptions(options => {
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
 builder.Services.AddApplicationServices(builder.Configuration);
