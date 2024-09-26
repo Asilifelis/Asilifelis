@@ -18,6 +18,8 @@ using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.Services.AddHttpClient();
+
 builder.Services.AddControllers(options => {
 	options.RespectBrowserAcceptHeader = true;
 	var jsonOptions = new JsonSerializerOptions(JsonSerializerOptions.Web) {
@@ -26,6 +28,7 @@ builder.Services.AddControllers(options => {
 	jsonOptions.Converters.Add(new JsonStringEnumConverter());
 
 	options.OutputFormatters.Insert(0, new JsonLdOutputFormatter(jsonOptions));
+	options.InputFormatters.Insert(1, new JsonLdInputFormatter(jsonOptions));
 }).AddJsonOptions(options => {
 	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<PublicKeyCredentialType>(JsonNamingPolicy.KebabCaseLower));
 	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));

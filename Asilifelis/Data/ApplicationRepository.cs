@@ -125,4 +125,21 @@ public class ApplicationRepository(ApplicationContext context) {
 		Context.Entry(note.Author).State = EntityState.Unchanged;
 		await Context.SaveChangesAsync(cancellationToken);
 	}
+
+	public async ValueTask LikeNoteAsync(Actor actor, Note note, CancellationToken cancellationToken = default) {
+		await Context.Set<ActorLikes>().AddAsync(new ActorLikes() {
+			Actor = actor,
+			Note = note
+		}, cancellationToken);
+		
+		Context.Entry(note).State = EntityState.Unchanged;
+		Context.Entry(note.Author).State = EntityState.Unchanged;
+		if (await Context.Actors.AnyAsync(a => a.Uri != null && a.Uri == actor.Uri, cancellationToken)) {
+			Context.Entry(actor).State = EntityState.Unchanged;
+			// TODO update display name maybe
+		} else {
+			Context.Entry(actor).State = EntityState.Added;
+		}
+		await Context.SaveChangesAsync(cancellationToken);
+	} 
 }

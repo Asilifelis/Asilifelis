@@ -74,13 +74,26 @@ public class ApplicationContext : DbContext {
 			actor.Property(a => a.DisplayName).HasMaxLength(4096).IsRequired();
 
 			actor.HasOne(a => a.Identity).WithMany().OnDelete(DeleteBehavior.Cascade);
-			actor.HasMany(a => a.Notes).WithOne(n => n.Author).OnDelete(DeleteBehavior.Cascade);
+			actor.HasMany(a => a.Notes).WithOne(n => n.Author).IsRequired()
+				.HasForeignKey("AuthorId").HasPrincipalKey(nameof(Actor.Id))
+				.OnDelete(DeleteBehavior.Cascade);
 		});
 		modelBuilder.Entity<Note>(note => {
 			note.HasKey(n => n.Id);
 			note.Property(n => n.Id).HasValueGenerator<GuidV7Generator>();
 
 			note.Property(n => n.Content).HasMaxLength(4096).IsUnicode().IsRequired();
+			note.HasMany(n => n.Likes).WithMany(a => a.Liked)
+				.UsingEntity<ActorLikes>(
+					actorLikes => actorLikes.HasOne(al => al.Actor).WithMany()
+						.HasForeignKey("LikedActorId").HasPrincipalKey(nameof(Actor.Id)),
+					actorLikes => actorLikes.HasOne(al => al.Note).WithMany()
+						.HasForeignKey("LikesNoteId").HasPrincipalKey(nameof(Note.Id)),
+					actorLikes => {
+						actorLikes.HasKey(al => al.Id);
+						actorLikes.Property<Guid>("LikedActorId");
+						actorLikes.Property<Guid>("LikesNoteId");
+					});
 		});
 
 		modelBuilder.Entity<UserIdentity>(identity => {
