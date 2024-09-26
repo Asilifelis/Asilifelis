@@ -6,35 +6,9 @@ namespace Asilifelis.Data;
 
 public class ApplicationRepository(ApplicationContext context) {
 	private ApplicationContext Context { get; } = context;
-	private const string ReservedInstanceActorName = "@@";
-	
-	public async ValueTask InitializeAsync(CancellationToken cancellationToken = default) {
-		if (await Context.Actors.FirstOrDefaultAsync(
-				a => a.Username == ReservedInstanceActorName, cancellationToken) is null) {
-			try {
-				Actor instanceActor = new() {
-					Username = ReservedInstanceActorName,
-					DisplayName = "Instance Actor",
-					Identity = null
-				};
-				await Context.AddAsync(instanceActor, cancellationToken);
-				await Context.SaveChangesAsync(cancellationToken);
-			} catch (Exception ex) {
-				throw new InvalidOperationException("Failed creating instance actor.", ex);
-			}
-		}
-	}
 
-	public async ValueTask<Actor> GetInstanceActorAsync(CancellationToken cancellationToken = default) {
-		try {
-			return await GetActorAsync(ReservedInstanceActorName, cancellationToken);
-		} catch (ActorNotFoundException ex) {
-			// TODO try (re-)creating the actor?
-			throw new InvalidOperationException(
-				"Instance actor could not be retrieved. " +
-				"This might be due to a connection error with the data store or because it is corrupted.",
-				ex);
-		}
+	public ValueTask InitializeAsync(CancellationToken cancellationToken = default) {
+		return ValueTask.CompletedTask;
 	}
 
 	public async ValueTask<bool> IsUsernameTaken(string username, CancellationToken cancellationToken = default) {

@@ -7,6 +7,7 @@ using Asilifelis.Data;
 using Asilifelis.Models;
 using Asilifelis.Utilities;
 using Fido2NetLib;
+using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Http.Json;
@@ -26,7 +27,8 @@ builder.Services.AddControllers(options => {
 
 	options.OutputFormatters.Insert(0, new JsonLdOutputFormatter(jsonOptions));
 }).AddJsonOptions(options => {
-	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter<PublicKeyCredentialType>(JsonNamingPolicy.KebabCaseLower));
+	options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
 });
 
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -88,20 +90,6 @@ app.UseAuthentication();
 app.UseSession();
 
 var api = app.MapGroup("/api");
-api.MapGet("/actor", async Task<Results<Ok<Actor>, ForbidHttpResult, ProblemHttpResult>> (
-		[FromServices] ApplicationRepository repository, 
-		ClaimsPrincipal principal,
-		CancellationToken cancellation) => {
-	if (principal.Identity?.IsAuthenticated is not true)
-		return TypedResults.Forbid();
-	try {
-		return TypedResults.Ok(await repository.GetInstanceActorAsync(cancellation));
-	} catch (InvalidOperationException) {
-		return TypedResults.Problem(
-			"Failed to load instance actor due to an internal server error.", 
-			statusCode:(int?)HttpStatusCode.InternalServerError);
-	}
-});
 api.MapGet("/version", Results<Ok<string>, NotFound> () => {
 	string? humanReadableVersion = Assembly.GetEntryAssembly()?
 		.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -111,7 +99,7 @@ api.MapGet("/version", Results<Ok<string>, NotFound> () => {
 
 await using (var scope = app.Services.CreateAsyncScope()) {
 	await using var context = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-	context.Database.EnsureCreated();
+	await context.Database.MigrateAsync();
 
 	var repository = scope.ServiceProvider.GetRequiredService<ApplicationRepository>();
 	await repository.InitializeAsync();

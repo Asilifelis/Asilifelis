@@ -1,0 +1,25 @@
+services:
+  asilifelis:
+    image: ${DOCKER_REGISTRY-}asilifelis
+    build:
+      context: .
+      dockerfile: Asilifelis/Dockerfile
+    links:
+      - database:db
+    environment:
+      - ConnectionStrings__Postgres=Host=db; Username=Asilifelis; Password=development; Include Error Detail=true
+    volumes:
+      - asilifelis-data:/app/data
+  database:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=Asilifelis"
+      - "POSTGRES_USER=Asilifelis"
+      - "POSTGRES_PASSWORD=development"
+    volumes:
+      - asilifelis-db:/var/lib/postgresql/data
+
+volumes:
+  asilifelis-db:
+  asilifelis-data:

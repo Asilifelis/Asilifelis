@@ -10,10 +10,20 @@ public static class ApplicationInitializer {
 		var options = new InstanceOptions();
 		optionsSection.Bind(options);
 
-		services.AddDbContextFactory<ApplicationContext>(sqliteOptions => {
-			sqliteOptions.UseSqlite(
-				"DataSource=" + Path.Combine(options.SqliteLocation, "Asilifelis.db"));
-		});
+		string? postgres = configuration.GetConnectionString("postgres");
+
+		if (postgres is not null) {
+			Console.WriteLine("postgres connection string detected.");
+			services.AddDbContextFactory<ApplicationContext>(postgresOptions => {
+				postgresOptions.UseNpgsql(postgres);
+			});
+		} else {
+			Console.WriteLine("no postgres connection, falling back to sqlite.");
+			services.AddDbContextFactory<ApplicationContext>(sqliteOptions => {
+				sqliteOptions.UseSqlite(
+					"DataSource=" + Path.Combine(options.DataLocation, "Asilifelis.db"));
+			});
+		}
 		services.AddScoped<ApplicationRepository>();
 
 		return services;

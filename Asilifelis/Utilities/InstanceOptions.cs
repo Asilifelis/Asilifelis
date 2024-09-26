@@ -4,5 +4,5 @@ public class InstanceOptions {
 	public const string ConfigurationSectionKeyName = "Instance";
 
 	public Uri? BaseUri { get; init; } = null;
-	public string SqliteLocation { get; init; } = "/app/data";
+	public string DataLocation { get; init; } = "/app/data";
 }

@@ -4,6 +4,7 @@ using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using NSec.Cryptography;
 
@@ -56,10 +57,23 @@ public class ApplicationContext : DbContext {
 			actor.HasKey(a => a.Id);
 			actor.Property(a => a.Id).HasValueGenerator<GuidV7Generator>();
 
-			actor.Property(a => a.Username).HasMaxLength(256).IsRequired().UseCollation("NOCASE"); // TODO use non-sqlite collation
+			var username = actor.Property(a => a.Username).HasMaxLength(256).IsRequired();
+
+			if (Database.IsSqlite()) {
+				username.UseCollation("NOCASE");
+			} else if (Database.IsNpgsql()) {
+				// und = undefined (basically inherit the language of the database)
+				// u = unicode
+				// ks = https://www.postgresql.org/docs/current/collation.html#ICU-COLLATION-COMPARISON-LEVELS
+				// https://www.postgresql.org/docs/current/collation.html#COLLATION-NONDETERMINISTIC
+				modelBuilder.HasCollation(null, "default_case_insensitive", "und-u-ks-level1", "und-u-ks-level1", "icu", false);
+				username.UseCollation("default_case_insensitive");
+			}
+
 			// We can limit the length on the Repository layer, thus making it customizable
 			actor.Property(a => a.DisplayName).HasMaxLength(4096).IsRequired();
 
+			actor.HasOne(a => a.Identity).WithMany().OnDelete(DeleteBehavior.Cascade);
 			actor.HasMany(a => a.Notes).WithOne(n => n.Author).OnDelete(DeleteBehavior.Cascade);
 		});
 		modelBuilder.Entity<Note>(note => {
@@ -75,7 +89,8 @@ public class ApplicationContext : DbContext {
 		modelBuilder.Entity<PublicKeyCredentialDescriptor>(credentialDescriptor => {
 			credentialDescriptor.Property(cd => cd.Id).IsRequired();
 			credentialDescriptor.Property(cd => cd.Type).IsRequired();
-			credentialDescriptor.Property(cd => cd.Transports).IsRequired(false);
+			var transports = credentialDescriptor.Property(cd => cd.Transports).IsRequired(false);
+			if (Database.IsNpgsql()) transports.HasColumnType("jsonb");
 		});
 	}
 }
