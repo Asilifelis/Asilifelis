@@ -7,8 +7,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0$BASE AS base
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 USER $APP_UID
 WORKDIR /app
+RUN mkdir ./data
 EXPOSE 8080
-
+VOLUME /app/data
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build

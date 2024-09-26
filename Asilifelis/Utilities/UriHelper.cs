@@ -2,10 +2,6 @@
 
 namespace Asilifelis.Utilities;
 
-public class InstanceOptions {
-	public Uri? BaseUri { get; init; }
-}
-
 public class UriHelper(IOptionsMonitor<InstanceOptions> options) {
 	private IOptionsMonitor<InstanceOptions> Options { get; } = options;
 

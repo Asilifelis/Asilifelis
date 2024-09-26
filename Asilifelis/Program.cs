@@ -27,11 +27,7 @@ builder.Services.AddControllers(options => {
 	options.OutputFormatters.Insert(0, new JsonLdOutputFormatter(jsonOptions));
 });
 
-builder.Services.AddDbContextFactory<ApplicationContext>(options => {
-	options.UseSqlite("DataSource=asilifelis.db");
-});
-builder.Services.AddScoped<ApplicationRepository>();
-builder.Services.Configure<InstanceOptions>(builder.Configuration.GetSection("Instance"));
+builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddSingleton<UriHelper>();
 
 #region Security
