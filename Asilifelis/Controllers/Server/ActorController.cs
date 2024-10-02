@@ -54,15 +54,19 @@ public class LikeActivityDto  {
 	}
 }
 
+public record LikeActivityView(Uri Actor, Uri Object, string Type = "like") {
+
+}
+
 public class NoteDto {
 
 }
 
-public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive) : ActivityStreamsObject {
+public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive, Uri Likes) : ActivityStreamsObject {
 	[JsonPropertyName("type"), UsedImplicitly]
 	public string Type => "Note";
 
-	public NoteView(Uri baseUri, Actor author, Note note) : this(
+	public NoteView(Uri baseUri, Actor author, Note note, Uri likes) : this(
 		new Uri(baseUri, $"api/note/{note.Id}"),
 		new Uri(baseUri, $"api/actor/{author.Id}"),
 		[
@@ -70,8 +74,9 @@ public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, strin
 		],
 		null,
 		note.Content, new SourceView(note.Content, "text/plain"),
-		note.PublishDate, 
-		false) {}
+		note.PublishDate,
+		false,
+		likes){}
 }
 
 [ApiController]
@@ -103,7 +108,8 @@ public class ActorController(ApplicationRepository repository, UriHelper uriHelp
 			var actor = await Repository.GetActorByIdentifierAsync(id, cancellationToken);
 			(var notes, int total) = await Repository.GetNotesAsync(actor, cancellationToken: cancellationToken);
 			return Ok(new OrderedCollection<NoteView>("", total, notes
-				.Select(n => new NoteView(UriHelper.GetBaseUri(Request), actor, n))));
+				.Select(n => new NoteView(UriHelper.GetBaseUri(Request), actor, n, 
+					UriHelper.GetUriAbsolute(Request, "/api/note/" + n.Id + "/likes")))));
 		} catch (ActorNotFoundException) {
 			return NotFound("user not found.");
 		} catch (IdentifierNotRecognizedException) {

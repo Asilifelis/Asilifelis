@@ -58,6 +58,10 @@ public class ApplicationRepository(ApplicationContext context) {
 		return await Context.Notes.Include(n => n.Author).FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
 	}
 
+	public async ValueTask<ICollection<ActorLikes>> GetLikesAsync(Note note, CancellationToken cancellationToken = default) {
+		return await Context.Set<ActorLikes>().Where(al => al.Note == note).Include(al => al.Actor).ToListAsync(cancellationToken);
+	}
+
 	public async ValueTask<UserIdentity> GetIdentityAsync(string username, CancellationToken cancellationToken = default) {
 		var actor = await Context.Actors
 			.Include(a => a.Identity)
