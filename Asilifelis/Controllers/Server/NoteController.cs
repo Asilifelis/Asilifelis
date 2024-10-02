@@ -1,7 +1,8 @@
 ﻿using Asilifelis.Data;
+using Asilifelis.Models.Transfer;
+using Asilifelis.Models.View;
 using Asilifelis.Utilities;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading;
 
 namespace Asilifelis.Controllers.Server;
 
@@ -16,9 +17,7 @@ public class NoteController(ApplicationRepository repository, UriHelper uriHelpe
 	public async ValueTask<IActionResult> GetNoteAsync(Guid id, CancellationToken cancellationToken) {
 		var note = await Repository.GetNoteByIdAsync(id, cancellationToken);
 		if (note is null) return NotFound();
-
-		var likes = await Repository.GetLikesAsync(note, cancellationToken);
-
+		
 		return Ok(new NoteView(UriHelper.GetBaseUri(Request), note.Author, note, 
 			UriHelper.GetUriAbsolute(Request, "/api/note/" + note.Id + "/likes")));
 	}

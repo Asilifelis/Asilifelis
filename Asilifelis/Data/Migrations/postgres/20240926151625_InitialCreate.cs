@@ -1,5 +1,4 @@
-﻿using System;
-using Fido2NetLib.Objects;
+﻿using Fido2NetLib.Objects;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 

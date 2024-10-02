@@ -1,12 +1,9 @@
 ﻿using Asilifelis.Models;
 using Asilifelis.Security;
-using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
-using NSec.Cryptography;
 
 namespace Asilifelis.Data;
 

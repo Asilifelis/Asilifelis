@@ -2,81 +2,16 @@
 using System.Text.Json.Serialization;
 using Asilifelis.Data;
 using Asilifelis.Models;
+using Asilifelis.Models.Transfer;
 using Asilifelis.Utilities;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace Asilifelis.Controllers.Server;
 
 public record ActivityStreamsObject {
 	[JsonPropertyName("@context"), JsonPropertyOrder(-1), UsedImplicitly]
 	public string Context => "https://www.w3.org/ns/activitystreams";
-}
-
-public record OrderedCollection<T>(string Summary, int TotalItems, IEnumerable<T> OrderedItems) : ActivityStreamsObject {
-	[JsonPropertyName("type"), UsedImplicitly]
-	public string Type => "OrderedCollection";
-}
-
-public record ActorView(Uri Id, ActorType Type, string Name, string PreferredUsername, string Summary, Uri Inbox, Uri Outbox) 
-	: ActivityStreamsObject {
-	public ActorView(Uri baseUri, Actor actor)
-		: this(
-			new Uri(baseUri, $"api/actor/{actor.Id}"),
-			actor.Type,
-			actor.DisplayName,
-			actor.Username,
-			"Not implemented yet",
-			new Uri(baseUri, $"api/actor/{actor.Id}/inbox"),
-			new Uri(baseUri, $"api/actor/{actor.Id}/outbox")) {}
-}
-
-public record SourceView(string Content, string MediaType);
-
-public class ActorDto {
-	public required Uri Id { get; init; }
-	public required string Type { get; init; }
-	public required string PreferredUsername { get; init; }
-	public required string Name { get; init; }
-}
-
-public class LikeActivityDto  {
-	public required Uri Id { get; init; }
-	public required string Type { get; init; }
-	
-	public required Uri Actor { get; init; }
-	public required Uri Object { get; init; }
-
-	public bool Validate() {
-		// TODO check Context
-		return string.Equals(Type, "like", StringComparison.InvariantCultureIgnoreCase);
-	}
-}
-
-public record LikeActivityView(Uri Actor, Uri Object, string Type = "like") {
-
-}
-
-public class NoteDto {
-
-}
-
-public record NoteView(Uri Id, Uri AttributedTo, Uri[] To, Uri? InReplyTo, string Content, SourceView Source, DateTimeOffset Published, bool Sensitive, Uri Likes) : ActivityStreamsObject {
-	[JsonPropertyName("type"), UsedImplicitly]
-	public string Type => "Note";
-
-	public NoteView(Uri baseUri, Actor author, Note note, Uri likes) : this(
-		new Uri(baseUri, $"api/note/{note.Id}"),
-		new Uri(baseUri, $"api/actor/{author.Id}"),
-		[
-			new Uri("https://www.w3.org/ns/activitystreams#Public")
-		],
-		null,
-		note.Content, new SourceView(note.Content, "text/plain"),
-		note.PublishDate,
-		false,
-		likes){}
 }
 
 [ApiController]

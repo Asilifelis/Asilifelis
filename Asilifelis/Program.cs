@@ -1,18 +1,12 @@
-using System.Net;
 using System.Reflection;
-using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asilifelis.Data;
-using Asilifelis.Models;
 using Asilifelis.Utilities;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Http.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using SameSiteMode = Microsoft.AspNetCore.Http.SameSiteMode;
 

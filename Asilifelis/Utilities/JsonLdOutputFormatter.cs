@@ -1,10 +1,6 @@
 ﻿using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using JsonLD.Core;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
