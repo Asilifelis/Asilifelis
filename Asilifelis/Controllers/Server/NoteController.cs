@@ -1,4 +1,5 @@
 ﻿using Asilifelis.Data;
+using Asilifelis.Models.Core;
 using Asilifelis.Models.Transfer;
 using Asilifelis.Models.View;
 using Asilifelis.Utilities;

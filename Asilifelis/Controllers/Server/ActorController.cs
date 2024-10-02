@@ -2,7 +2,9 @@
 using System.Text.Json.Serialization;
 using Asilifelis.Data;
 using Asilifelis.Models;
+using Asilifelis.Models.Core;
 using Asilifelis.Models.Transfer;
+using Asilifelis.Models.View;
 using Asilifelis.Utilities;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Mvc;

@@ -45,7 +45,10 @@ public class WellKnownController(ApplicationRepository repository, UriHelper uri
 				new Uri(baseUri, $"/api/actor/{actor.Id}").AbsoluteUri,
 				new Uri(baseUri, $"/api/actor/@{actor.Username}").AbsoluteUri
 			],
-			[new Link("self", "application/activity+json", new Uri(baseUri, $"/api/actor/{actor.Id}").AbsoluteUri)]) { }
+			[
+				new Link("self", "application/activity+json", new Uri(baseUri, $"/api/actor/{actor.Id}").AbsoluteUri),
+				new Link("http://webfinger.net/rel/avatar", "image/jpg", new Uri(baseUri, "/media/default.jpg").AbsoluteUri)
+			]) { }
 	}
 
 	[HttpGet("webfinger")]

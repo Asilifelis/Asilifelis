@@ -30,7 +30,15 @@ public class ApplicationRepository(ApplicationContext context) {
 	}
 	public async ValueTask<Actor> GetActorAsync(string username, CancellationToken cancellationToken = default) {
 		var actor = await Context.Actors.FirstOrDefaultAsync(
-			a => a.Username == username, cancellationToken);
+			a => a.Username == username && a.Uri == null, cancellationToken);
+		
+		if (actor is null) throw new ActorNotFoundException();
+		return actor;
+	}
+	public async ValueTask<Actor> GetActorShadowAsync(string username, string host, CancellationToken cancellationToken = default) {
+		string hostPattern = $"%{host}%";
+		var actor = await Context.Actors.FirstOrDefaultAsync(
+			a => a.Username == username && a.Uri != null && EF.Functions.ILike(a.Uri, hostPattern), cancellationToken);
 		
 		if (actor is null) throw new ActorNotFoundException();
 		return actor;

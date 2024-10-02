@@ -34,6 +34,5 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\postgres\" />
-    <Folder Include="wwwroot\" />
   </ItemGroup>
 </Project>
