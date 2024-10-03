@@ -17,4 +17,6 @@ public class Actor {
 
 	public ICollection<Note> Notes { get; } = [];
 	public ICollection<Note> Liked { get; } = [];
+
+	public string? Host => Uri is null ? null : new Uri(Uri).Host;
 }

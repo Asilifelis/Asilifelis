@@ -11,6 +11,16 @@ public class ApplicationRepository(ApplicationContext context) {
 		return ValueTask.CompletedTask;
 	}
 
+	public async ValueTask<ICollection<Note>> GetPublicNotesAsync(int count, CancellationToken cancellationToken = default) {
+
+		return await Context
+			.Notes
+			.Include(n => n.Author).Include(n => n.Likes)
+			// Where => public
+			.Take(10).OrderByDescending(n => n.Id)
+			.ToListAsync(cancellationToken);
+	}
+
 	public async ValueTask<bool> IsUsernameTaken(string username, CancellationToken cancellationToken = default) {
 		return await Context.Actors.AnyAsync(a => a.Username == username, cancellationToken);
 	}
