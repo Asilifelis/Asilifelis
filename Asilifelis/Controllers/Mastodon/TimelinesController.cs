@@ -37,9 +37,9 @@ public record MastodonAccount(
 	Uri Header,
 	[property: JsonPropertyName("header_static")]
 	Uri HeaderStatic,
-	bool Locked,
-	// Fields []
-	// Emojis []
+	object[] Fields,
+	object[] Emojis,
+	bool Locked = false,
 	bool Bot = false,
 	bool Group = false, 
 	bool Discoverable = false,
@@ -56,18 +56,18 @@ public record MastodonNoteView(
 	DateTimeOffset CreatedAt,
 	[property:JsonPropertyName("edited_at")]
 	DateTimeOffset? EditedAt,
-	// Account
 	string Content,
 	MastodonVisibility Visibility,
 	bool Sensitive,
 	[property: JsonPropertyName("spoiler_text")]
 	string? SpoilerText,
-	// Media Attachment []
 	MastodonApplication Application,
 	MastodonAccount Account,
-	// Mentions []
-	// Tags []
-	// Emojis []
+	[property: JsonPropertyName("media_attachments")]
+	object[] MediaAttachment,
+	object[] Mentions,
+	object[] Tags,
+	object[] Emojis,
 	[property: JsonPropertyName("reblogs_count")]
 	int ReblogsCount,
 	[property: JsonPropertyName("favorites_count")]
@@ -126,14 +126,10 @@ public class TimelinesController(ApplicationRepository repository, UriHelper uri
 				0,
 				img, img,
 				img, img,
-				false,
-				false,
-				false,
-				false,
-				false
+				[], []
 				),
-			0, n.Likes.Count, 0,
-			null, null, null
+			[], [], [], [],
+			0, n.Likes.Count, 0
 			)));
 	}
 }
