@@ -52,6 +52,7 @@ public record MastodonApplication(
 	string Website = "https://github.com/Asilifelis/Asilifelis");
 public record MastodonNoteView(
 	Guid Id, 
+	Uri Uri, 
 	Uri Url, 
 	[property:JsonPropertyName("created_at")]
 	DateTimeOffset CreatedAt,
@@ -105,6 +106,7 @@ public class TimelinesController(ApplicationRepository repository, UriHelper uri
 		var img = UriHelper.GetUriAbsolute(Request, "/media/default.jpg");
 		return TypedResults.Ok(notes.Select(n => new MastodonNoteView(
 			n.Id, 
+			UriHelper.GetUriAbsolute(Request, "/api/note/" + n.Id),
 			UriHelper.GetUriAbsolute(Request, "/api/note/" + n.Id),
 			n.PublishDate,
 			null,
