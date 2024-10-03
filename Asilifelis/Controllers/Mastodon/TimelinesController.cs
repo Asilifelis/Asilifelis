@@ -60,7 +60,7 @@ public record MastodonNoteView(
 	MastodonVisibility Visibility,
 	bool Sensitive,
 	[property: JsonPropertyName("spoiler_text")]
-	string? SpoilerText,
+	string SpoilerText,
 	MastodonApplication Application,
 	MastodonAccount Account,
 	[property: JsonPropertyName("media_attachments")]
@@ -110,7 +110,7 @@ public class TimelinesController(ApplicationRepository repository, UriHelper uri
 			n.Content,
 			MastodonVisibility.Public,
 			false,
-			null,
+			"",
 			new MastodonApplication(),
 			new MastodonAccount(
 				n.Author.Id.ToString(),
