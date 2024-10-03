@@ -16,6 +16,7 @@ public record MastodonAccount(
 	string Id, 
 	string Username, 
 	string Acct,
+	Uri Uri,
 	Uri Url,
 	[property: JsonPropertyName("display_name")]
 	string DisplayName,
@@ -116,6 +117,7 @@ public class TimelinesController(ApplicationRepository repository, UriHelper uri
 				n.Author.Id.ToString(),
 				n.Author.Username,
 				$"{n.Author.Username}@{n.Author.Host ?? UriHelper.GetBaseUri(Request).Host}",
+				n.Author.Uri != null ? new Uri(n.Author.Uri) : UriHelper.GetUriAbsolute(Request, "/api/actor/" + n.Id),
 				n.Author.Uri != null ? new Uri(n.Author.Uri) : UriHelper.GetUriAbsolute(Request, "/api/actor/" + n.Id),
 				n.Author.DisplayName,
 				"Not Implemented",
