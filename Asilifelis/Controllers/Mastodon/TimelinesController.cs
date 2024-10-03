@@ -9,7 +9,14 @@ namespace Asilifelis.Controllers.Mastodon;
 
 [JsonConverter(typeof(JsonStringEnumConverter<MastodonVisibility>))]
 public enum MastodonVisibility {
-	Public, Unlisted, Private, Direct
+	[JsonStringEnumMemberName("public")]
+	Public, 
+	[JsonStringEnumMemberName("unlisted")]
+	Unlisted, 
+	[JsonStringEnumMemberName("private")]
+	Private, 
+	[JsonStringEnumMemberName("direct")]
+	Direct
 }
 
 public record MastodonAccount(
